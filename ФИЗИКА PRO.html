@@ -1,0 +1,1825 @@
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Физика PRO - умный помощник</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <style>
+
+            :root {
+                --primary: #5a3cff;
+                --secondary: #906cff;
+                --accent: #00e0ff;
+                --dark-bg: #0D1117;
+                --dark-card-bg: rgba(25, 29, 36, 0.8);
+                --text-light: #E0E0E0;
+                --text-muted: #A0A0A0;
+                --border-color: rgba(255, 255, 255, 0.1);
+                --shadow-color: rgba(0, 0, 0, 0.6);
+                --success: #00b894;
+                --warning: #fdcb6e;
+                --danger: #d63031;
+                --transition-speed: 0.3s;
+                --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            }
+
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background: var(--dark-bg);
+                min-height: 100vh;
+                color: var(--text-light);
+                overflow-x: hidden;
+                position: relative;
+                cursor: default;
+            }
+
+
+            #loading-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: var(--dark-bg);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+                color: var(--text-light);
+                font-size: 1.2rem;
+                transition: opacity 1s var(--ease-out-expo);
+            }
+
+            #loading-overlay.hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .loading-spinner {
+                border: 4px solid rgba(var(--primary), 0.3);
+                border-top: 4px solid var(--primary);
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                animation: spin 1.5s linear infinite;
+                margin-bottom: 1rem;
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+
+            #three-bg {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -2;
+                opacity: 0.3;
+                filter: blur(1px);
+            }
+
+
+            .particles {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1;
+                opacity: 0.1;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 2rem;
+                position: relative;
+                z-index: 1;
+            }
+
+            header {
+                text-align: center;
+                margin-bottom: 3rem;
+                position: relative;
+                overflow: hidden;
+                padding: 2rem 0;
+                border-radius: 15px;
+                background: var(--dark-card-bg);
+                backdrop-filter: blur(10px);
+                box-shadow: 0 10px 30px var(--shadow-color);
+                border: 1px solid var(--border-color);
+                animation: slideInFromTop 1s var(--ease-out-expo);
+            }
+
+            @keyframes slideInFromTop {
+                from { opacity: 0; transform: translateY(-50px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            header::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+                opacity: 0.05;
+                z-index: -1;
+                animation: rotate 20s linear infinite;
+            }
+
+            @keyframes rotate {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+            h1 {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 3rem;
+                margin-bottom: 1rem;
+                background: linear-gradient(45deg, var(--primary), var(--accent));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            }
+
+            .subtitle {
+                font-size: 1.2rem;
+                color: var(--text-muted);
+                opacity: 0.9;
+                margin-bottom: 2rem;
+            }
+
+            .tabs {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 3rem;
+                gap: 1rem;
+                flex-wrap: wrap;
+                opacity: 0;
+                transform: translateY(-20px);
+                transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+            }
+
+            .tabs.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .tab-btn {
+                padding: 0.8rem 1.5rem;
+                border: none;
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.05);
+                color: var(--text-light);
+                font-family: 'Inter', sans-serif;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all var(--transition-speed) ease;
+                backdrop-filter: blur(5px);
+                box-shadow: 0 4px 15px var(--shadow-color);
+                border: 1px solid var(--border-color);
+                position: relative;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .tab-btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+                transition: all 0.5s ease;
+            }
+
+            .tab-btn:hover::before {
+                left: 100%;
+            }
+
+            .tab-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+                background: rgba(255, 255, 255, 0.08);
+            }
+
+            .tab-btn.active {
+                background: var(--primary);
+                color: white;
+                box-shadow: 0 6px 20px rgba(90, 60, 255, 0.4);
+                transform: translateY(-3px);
+                border-color: var(--primary);
+            }
+
+            .tab-btn.active::before {
+                display: none;
+            }
+
+            .tab-btn svg {
+                width: 1.2em;
+                height: 1.2em;
+                fill: currentColor;
+            }
+
+            .content {
+                display: none;
+                opacity: 0;
+                transform: translateY(20px);
+                transition: opacity 0.5s ease, transform 0.5s ease;
+            }
+
+            .content.active {
+                display: block;
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .card {
+                background: var(--dark-card-bg);
+                border-radius: 15px;
+                padding: 2rem;
+                margin-bottom: 2rem;
+                box-shadow: 0 10px 30px var(--shadow-color);
+                backdrop-filter: blur(5px);
+                border: 1px solid var(--border-color);
+                animation: popIn 0.6s var(--ease-out-expo);
+            }
+
+            @keyframes popIn {
+                from { opacity: 0; transform: scale(0.95); }
+                to { opacity: 1; transform: scale(1); }
+            }
+
+            .card-title {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 1.5rem;
+                margin-bottom: 1.5rem;
+                background: linear-gradient(45deg, var(--primary), var(--accent));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                display: flex;
+                align-items: center;
+                gap: 0.8rem;
+            }
+
+            .card-title svg {
+                width: 1.5em;
+                height: 1.5em;
+                fill: url(#card-title-gradient);
+            }
+
+
+            .card-title-gradient {
+                background: linear-gradient(45deg, var(--primary), var(--accent));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
+
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+                color: var(--text-light);
+            }
+
+            select,
+            input[type="text"],
+            input[type="number"] {
+                width: 100%;
+                padding: 0.8rem 1rem;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                font-family: 'Inter', sans-serif;
+                font-size: 1rem;
+                background: rgba(255, 255, 255, 0.08);
+                color: var(--text-light);
+                transition: all var(--transition-speed) ease;
+            }
+
+            select:focus,
+            input:focus {
+                outline: none;
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(90, 60, 255, 0.2);
+            }
+
+            .btn {
+                display: inline-block;
+                padding: 0.8rem 1.5rem;
+                background: var(--primary);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-family: 'Inter', sans-serif;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all var(--transition-speed) ease;
+                text-align: center;
+                box-shadow: 0 4px 15px rgba(90, 60, 255, 0.4);
+                position: relative;
+                overflow: hidden;
+                z-index: 1;
+            }
+
+            .btn::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+                transition: width 0.4s ease-out, height 0.4s ease-out, top 0.4s ease-out, left 0.4s ease-out;
+                transform: translate(-50%, -50%);
+                z-index: -1;
+            }
+
+            .btn:hover::before {
+                width: 200%;
+                height: 200%;
+                top: 50%;
+                left: 50%;
+            }
+
+            .btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 20px rgba(90, 60, 255, 0.6);
+            }
+
+            .btn-secondary {
+                background: var(--secondary);
+                box-shadow: 0 4px 15px rgba(144, 108, 255, 0.4);
+            }
+
+            .btn-secondary:hover {
+                box-shadow: 0 6px 20px rgba(144, 108, 255, 0.6);
+            }
+
+            .btn-accent {
+                background: var(--accent);
+                box-shadow: 0 4px 15px rgba(0, 224, 255, 0.4);
+            }
+
+            .btn-accent:hover {
+                box-shadow: 0 6px 20px rgba(0, 224, 255, 0.6);
+            }
+
+            .formula-container,
+            .task-container {
+                margin: 2rem 0;
+                padding: 2rem;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 10px;
+                text-align: center;
+                box-shadow: 0 5px 15px var(--shadow-color);
+                opacity: 0;
+                transform: scale(0.9);
+                transition: all 0.5s var(--ease-out-expo);
+                border-left: 5px solid var(--primary);
+            }
+
+            .task-container {
+                border-left: 5px solid var(--accent);
+            }
+
+            .formula-container.show,
+            .task-container.show {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            .formula {
+                font-family: 'Times New Roman', serif;
+                font-style: italic;
+                margin: 1rem 0;
+                font-size: 1.5rem;
+                color: var(--text-light);
+            }
+
+            .explanation {
+                margin-top: 1rem;
+                font-size: 1rem;
+                color: var(--text-muted);
+                text-align: left;
+            }
+
+            .task-text {
+                font-size: 1.2rem;
+                margin-bottom: 1.5rem;
+                line-height: 1.6;
+                color: var(--text-light);
+            }
+
+            .answer-input {
+                margin: 1rem 0;
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+            }
+
+            .answer-input input {
+                flex: 1;
+            }
+
+            .solution {
+                margin-top: 2rem;
+                padding: 1.5rem;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 8px;
+                display: none;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .solution-title {
+                font-weight: 700;
+                margin-bottom: 1rem;
+                background: linear-gradient(45deg, var(--primary), var(--secondary));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
+
+            .solution-step {
+                margin-bottom: 0.5rem;
+                line-height: 1.6;
+                color: var(--text-muted);
+            }
+
+            .correct {
+                color: var(--success);
+                font-weight: 700;
+            }
+
+            .incorrect {
+                color: var(--danger);
+                font-weight: 700;
+            }
+
+            .formulas-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 1.5rem;
+                margin-top: 2rem;
+            }
+
+            .formula-card {
+                background: rgba(255, 255, 255, 0.08);
+                border-radius: 10px;
+                padding: 1.5rem;
+                box-shadow: 0 5px 15px var(--shadow-color);
+                transition: all var(--transition-speed) ease;
+                border: 1px solid var(--border-color);
+                color: var(--text-light);
+            }
+
+            .formula-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+                border-color: var(--primary);
+            }
+
+            .formula-card .formula {
+                font-size: 1.2rem;
+                margin: 1rem 0;
+                text-align: center;
+                color: var(--text-light);
+            }
+
+            .formula-card .description {
+                font-size: 0.9rem;
+                color: var(--text-muted);
+            }
+
+
+            .search-container {
+                margin-bottom: 2rem;
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+            }
+
+            .search-container input {
+                flex-grow: 1;
+            }
+
+
+            .analogy-result-container {
+                margin-top: 2rem;
+                padding: 2rem;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 10px;
+                box-shadow: 0 5px 15px var(--shadow-color);
+                border-left: 5px solid var(--primary);
+                display: none;
+            }
+            .analogy-result-container.show {
+                display: block;
+                animation: fadeIn 0.5s ease;
+            }
+            .analogy-title {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 1.4rem;
+                background: linear-gradient(45deg, var(--primary), var(--accent));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                margin-bottom: 1rem;
+            }
+            .analogy-description {
+                font-size: 1rem;
+                line-height: 1.6;
+                color: var(--text-light);
+            }
+            .analogy-example-formula {
+                margin-top: 1.5rem;
+                font-size: 1.3rem;
+                text-align: center;
+                background: rgba(255, 255, 255, 0.03);
+                padding: 1rem;
+                border-radius: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                color: var(--text-light);
+            }
+
+
+            .custom-modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+            }
+
+            .custom-modal-overlay.visible {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .custom-modal {
+                background: var(--dark-card-bg);
+                padding: 2rem;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px var(--shadow-color);
+                max-width: 400px;
+                text-align: center;
+                transform: translateY(-20px);
+                transition: transform 0.3s ease;
+                border: 1px solid var(--border-color);
+                color: var(--text-light);
+            }
+
+            .custom-modal-overlay.visible .custom-modal {
+                transform: translateY(0);
+            }
+
+            .custom-modal h3 {
+                margin-bottom: 1rem;
+                background: linear-gradient(45deg, var(--primary), var(--accent));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                font-family: 'Montserrat', sans-serif;
+            }
+
+            .custom-modal p {
+                margin-bottom: 1.5rem;
+                color: var(--text-light);
+            }
+
+            .custom-modal .btn {
+                margin-top: 1rem;
+            }
+
+
+            @media (max-width: 768px) {
+                h1 {
+                    font-size: 2rem;
+                }
+                .tabs {
+                    flex-direction: column;
+                    gap: 0.8rem;
+                }
+                .tab-btn {
+                    width: 100%;
+                }
+                .formulas-list {
+                    grid-template-columns: 1fr;
+                }
+                .container {
+                    padding: 1rem;
+                }
+                .card {
+                    padding: 1.5rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <svg width="0" height="0" style="position:absolute;z-index:-1">
+            <defs>
+                <linearGradient id="card-title-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:var(--primary);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:var(--accent);stop-opacity:1" />
+                </linearGradient>
+            </defs>
+        </svg>
+
+        <div id="loading-overlay">
+            <div class="loading-spinner"></div>
+            <p>Загрузка...</p>
+        </div>
+
+        <canvas id="three-bg"></canvas>
+        <div class="particles" id="particles-js"></div>
+
+        <div class="container">
+            <header>
+                <h1>Физика PRO</h1>
+                <p class="subtitle">Умный помощник для изучения формул и решения задач</p>
+            </header>
+
+            <div class="tabs" id="main-tabs">
+                <button class="tab-btn active" data-tab="formulas">
+                    <svg viewBox="0 0 24 24" fill="url(#card-title-gradient)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                    </svg>
+                    Формулы
+                </button>
+                <button class="tab-btn" data-tab="tasks">
+                    <svg viewBox="0 0 24 24" fill="url(#card-title-gradient)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 16H5V5h14v14zM7 10h10v2H7zm0 4h10v2H7z"/>
+                    </svg>
+                    Задачи
+                </button>
+                <button class="tab-btn" data-tab="algebra">
+                    <svg viewBox="0 0 24 24" fill="url(#card-title-gradient)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-3-8h6v2H9zm0-4h6v2H9z"/>
+                    </svg>
+                    Алгебра
+                </button>
+                <button class="tab-btn" data-tab="all-formulas">
+                    <svg viewBox="0 0 24 24" fill="url(#card-title-gradient)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM11 7H7v4h4V7zm6 0h-4v4h4V7zm-6 6H7v4h4v-4zm6 0h-4v4h4v-4z"/>
+                    </svg>
+                    Все формулы
+                </button>
+                <button class="tab-btn" data-tab="solution-analogy">
+                    <svg viewBox="0 0 24 24" fill="url(#card-title-gradient)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 7h-2v2h2V7zm0 4h-2v2h2v-2zm4 0h-2v2h2v-2zM3 3v18h18V3H3zm16 16H5V5h14v14z"/>
+                    </svg>
+                    Решение по аналогии
+                </button>
+            </div>
+
+            <div class="content active" id="formulas">
+                <div class="card">
+                    <h2 class="card-title">
+                        <svg viewBox="0 0 24 24" fill="url(#card-title-gradient)" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                        </svg>
+                        Генератор формул по физике
+                    </h2>
+                    <div class="form-group">
+                        <label for="grade">Выберите класс:</label>
+                        <select id="grade">
+                            <option value="7">7 класс</option>
+                            <option value="8">8 класс</option>
+                            <option value="9">9 класс</option>
+                            <option value="10">10 класс</option>
+                            <option value="11">11 класс</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Выберите разделы:</label>
+                        <div id="topics-checkboxes"></div>
+                    </div>
+                    <button id="generate-btn" class="btn">Сгенерировать формулу</button>
+                    <div class="formula-container" id="formula-container">
+                        <div class="formula" id="formula"></div>
+                        <div class="explanation" id="explanation"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" id="tasks">
+                <div class="card">
+                    <h2 class="card-title">
+                        <svg viewBox="0 0 24 24" fill="url(#card-title-gradient)" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 16H5V5h14v14zM7 10h10v2H7zm0 4h10v2H7z"/>
+                        </svg>
+                        Генератор задач по физике
+                    </h2>
+                    <div class="form-group">
+                        <label for="task-grade">Выберите класс:</label>
+                        <select id="task-grade">
+                            <option value="7">7 класс</option>
+                            <option value="8">8 класс</option>
+                            <option value="9">9 класс</option>
+                            <option value="10">10 класс</option>
+                            <option value="11">11 класс</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-topic">Выберите тему:</label>
+                        <select id="task-topic">
+                            <option value="all">Все темы</option>
+                            <option value="mechanics">Механика</option>
+                            <option value="thermodynamics">Термодинамика</option>
+                            <option value="electricity">Электричество</option>
+                            <option value="optics">Оптика</option>
+                        </select>
+                    </div>
+                    <button id="generate-task-btn" class="btn btn-accent">Сгенерировать задачу</button>
+                    <div class="task-container" id="task-container" style="display:none;">
+                        <div class="task-text" id="task-text"></div>
+                        <div class="answer-input">
+                            <input type="text" id="user-answer" placeholder="Введите ваш ответ...">
+                            <button id="check-answer-btn" class="btn btn-secondary">Проверить</button>
+                        </div>
+                        <div class="solution" id="solution">
+                            <div class="solution-title">Решение:</div>
+                            <div id="solution-steps"></div>
+                            <div id="answer-result"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" id="algebra">
+                <div class="card">
+                    <h2 class="card-title">
+                        <svg viewBox="0 0 24 24" fill="url(#card-title-gradient)" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-3-8h6v2H9zm0-4h6v2H9z"/>
+                        </svg>
+                        Генератор задач по алгебре
+                    </h2>
+                    <div class="form-group">
+                        <label for="algebra-task-type">Выберите тип задачи:</label>
+                        <select id="algebra-task-type">
+                            <option value="linear-equation">Линейное уравнение ($ax + b = c$)</option>
+                            <option value="quadratic-equation">Квадратное уравнение ($ax^2 + bx + c = 0$)</option>
+                            <option value="system-of-equations">Система линейных уравнений</option>
+                            <option value="expression-evaluation">Вычисление выражения ($a \cdot x + b$)</option>
+                            <option value="factoring-expression">Разложение на множители ($x^2 + bx + c$)</option>
+                            <option value="inequality-linear">Линейное неравенство ($ax + b > c$)</option>
+                            <option value="function-value">Значение функции ($f(x) = ax + b$)</option>
+                        </select>
+                    </div>
+                    <button id="generate-algebra-task-btn" class="btn btn-accent">Сгенерировать задачу по алгебре</button>
+                    <div class="task-container" id="algebra-task-container" style="display:none;">
+                        <div class="task-text" id="algebra-task-text"></div>
+                        <div class="answer-input">
+                            <input type="text" id="algebra-user-answer" placeholder="Введите ваш ответ...">
+                            <button id="check-algebra-answer-btn" class="btn btn-secondary">Проверить</button>
+                        </div>
+                        <div class="solution" id="algebra-solution">
+                            <div class="solution-title">Решение:</div>
+                            <div id="algebra-solution-steps"></div>
+                            <div id="algebra-answer-result"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" id="all-formulas">
+                <div class="card">
+                    <h2 class="card-title">
+                        <svg viewBox="0 0 24 24" fill="url(#card-title-gradient)" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM11 7H7v4h4V7zm6 0h-4v4h4V7zm-6 6H7v4h4v-4zm6 0h-4v4h4v-4z"/>
+                        </svg>
+                        Все формулы
+                    </h2>
+                    <div class="form-group">
+                        <label for="filter-grade">Фильтр по классу:</label>
+                        <select id="filter-grade">
+                            <option value="all">Все классы</option>
+                            <option value="7">7 класс</option>
+                            <option value="8">8 класс</option>
+                            <option value="9">9 класс</option>
+                            <option value="10">10 класс</option>
+                            <option value="11">11 класс</option>
+                        </select>
+                    </div>
+                    <div class="formulas-list" id="formulas-list"></div>
+                </div>
+            </div>
+
+            <div class="content" id="solution-analogy">
+                <div class="card">
+                    <h2 class="card-title">
+                        <svg viewBox="0 0 24 24" fill="url(#card-title-gradient)" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13 7h-2v2h2V7zm0 4h-2v2h2v-2zm4 0h-2v2h2v-2zM3 3v18h18V3H3zm16 16H5V5h14v14z"/>
+                        </svg>
+                        Решение по аналогии
+                    </h2>
+                    <div class="search-container">
+                        <input type="text" id="analogy-search-input" placeholder="Например: 'линейное уравнение' или 'квадратное уравнение'">
+                        <button id="analogy-search-btn" class="btn">Найти</button>
+                    </div>
+                    <div class="analogy-result-container" id="analogy-result-container">
+                        <h3 class="analogy-title" id="analogy-result-title"></h3>
+                        <div class="analogy-description" id="analogy-result-description"></div>
+                        <div class="analogy-example-formula" id="analogy-example-formula"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="custom-modal-overlay" id="custom-modal-overlay">
+            <div class="custom-modal">
+                <h3 id="modal-title"></h3>
+                <p id="modal-message"></p>
+                <button class="btn" id="modal-close-btn">ОК</button>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+        <script>
+            MathJax = {
+                tex: {
+                    inlineMath: [['$', '$'], ['\\(', '\\)']],
+                    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+                },
+                svg: {
+                    fontCache: 'global'
+                }
+            };
+
+            const formulasDatabase = {
+                "7": {
+                    "mechanics": [
+                        { "formula": "$$v = \\frac{s}{t}$$", "explanation": "Скорость (v) равна пути (s), делённому на время (t). Единица измерения - м/с." },
+                        { "formula": "$$F = m \\cdot a$$", "explanation": "Сила (F) равна массе (m), умноженной на ускорение (a). Второй закон Ньютона. Единица измерения - Н (Ньютон)." },
+                        { "formula": "$$\\rho = \\frac{m}{V}$$", "explanation": "Плотность ($\\rho$) равна массе (m), делённой на объём (V). Единица измерения - кг/м³." },
+                        { "formula": "$$P = \\frac{F}{S}$$", "explanation": "Давление (P) равно силе (F), делённой на площадь (S). Единица измерения - Па (Паскаль)." }
+                    ],
+                    "thermodynamics": [
+                        { "formula": "$$Q = c \\cdot m \\cdot \\Delta t$$", "explanation": "Количество теплоты (Q) равно удельной теплоёмкости (c), умноженной на массу (m) и изменение температуры ($\\Delta t$). Единица измерения - Дж (Джоуль)." }
+                    ]
+                },
+                "8": {
+                    "mechanics": [
+                        { "formula": "$$A = F \\cdot s \\cdot \\cos(\\alpha)$$", "explanation": "Работа (A) равна силе (F), умноженной на перемещение (s) и косинус угла между ними ($\\alpha$). Единица измерения - Дж." },
+                        { "formula": "$$P = \\frac{A}{t}$$", "explanation": "Мощность (P) равна работе (A), делённой на время (t). Единица измерения - Вт (Ватт)." },
+                        { "formula": "$$E_k = \\frac{m \\cdot v^2}{2}$$", "explanation": "Кинетическая энергия ($E_k$) равна половине произведения массы (m) на квадрат скорости (v). Единица измерения - Дж." },
+                        { "formula": "$$E_p = m \\cdot g \\cdot h$$", "explanation": "Потенциальная энергия ($E_p$) равна произведению массы (m), ускорения свободного падения (g) и высоты (h). Единица измерения - Дж." }
+                    ],
+                    "thermodynamics": [
+                        { "formula": "$$\\eta = \\frac{Q_1 - Q_2}{Q_1} \\cdot 100\\%$$", "explanation": "КПД тепловой машины ($\\eta$) равен отношению разности полученного ($Q_1$) и отданного ($Q_2$) тепла к полученному теплу, умноженному на 100%." }
+                    ],
+                    "electricity": [
+                        { "formula": "$$I = \\frac{q}{t}$$", "explanation": "Сила тока (I) равна заряду (q), прошедшему через поперечное сечение проводника, делённому на время (t). Единица измерения - А (Ампер)." },
+                        { "formula": "$$U = \\frac{A}{q}$$", "explanation": "Напряжение (U) равно работе (A) по перемещению заряда (q), делённой на величину этого заряда. Единица измерения - В (Вольт)." },
+                        { "formula": "$$R = \\rho \\cdot \\frac{l}{S}$$", "explanation": "Сопротивление проводника (R) равно произведению удельного сопротивления ($\\rho$) на длину (l), делённую на площадь поперечного сечения (S). Единица измерения - Ом." }
+                    ]
+                },
+                "9": {
+                    "mechanics": [
+                        { "formula": "$$F = G \\cdot \\frac{m_1 \\cdot m_2}{r^2}$$", "explanation": "Закон всемирного тяготения: сила (F) равна произведению гравитационной постоянной (G), масс двух тел ($m_1$ и $m_2$), делённому на квадрат расстояния между ними (r). Единица измерения - Н." },
+                        { "formula": "$$v = v_0 + a \\cdot t$$", "explanation": "Скорость при равноускоренном движении: конечная скорость (v) равна начальной скорости ($v_0$) плюс произведение ускорения (a) на время (t)." },
+                        { "formula": "$$s = v_0 \\cdot t + \\frac{a \\cdot t^2}{2}$$", "explanation": "Путь при равноускоренном движении: пройденный путь (s) равен произведению начальной скорости ($v_0$) на время (t) плюс половина произведения ускорения (a) на квадрат времени." }
+                    ],
+                    "electricity": [
+                        { "formula": "$$I = \\frac{U}{R}$$", "explanation": "Закон Ома для участка цепи: сила тока (I) равна напряжению (U), делённому на сопротивление (R)." },
+                        { "formula": "$$P = I \\cdot U$$", "explanation": "Мощность электрического тока (P) равна произведению силы тока (I) на напряжение (U). Единица измерения - Вт." },
+                        { "formula": "$$Q = I^2 \\cdot R \\cdot t$$", "explanation": "Закон Джоуля-Ленца: количество теплоты (Q), выделяемое проводником, равно квадрату силы тока (I), умноженному на сопротивление (R) и время (t). Единица измерения - Дж." }
+                    ],
+                    "optics": [
+                        { "formula": "$$n = \\frac{\\sin(\\alpha)}{\\sin(\\beta)}$$", "explanation": "Закон преломления: показатель преломления (n) равен синусу угла падения ($\\alpha$), делённому на синусу угла преломления ($\\beta$)." },
+                        { "formula": "$$\\frac{1}{F} = \\frac{1}{d} + \\frac{1}{f}$$", "explanation": "Формула тонкой линзы: обратное фокусное расстояние (F) равно сумме обратных расстояний от предмета (d) и изображения (f) до линзы." }
+                    ]
+                },
+                "10": {
+                    "mechanics": [
+                        { "formula": "$$p = m \\cdot v$$", "explanation": "Импульс тела (p) равен произведению массы (m) на скорость (v). Единица измерения - кг·м/с." },
+                        { "formula": "$$F \\cdot \\Delta t = \\Delta p$$", "explanation": "Импульс силы ($F \\cdot \\Delta t$) равен изменению импульса тела ($\\Delta p$). Второй закон Ньютона в импульсной форме." },
+                        { "formula": "$$x = x_0 + v_0 \\cdot t + \\frac{a \\cdot t^2}{2}$$", "explanation": "Уравнение координаты при равноускоренном движении: координата (x) равна начальной координате ($x_0$) плюс произведение начальной скорости ($v_0$) на время плюс половина произведения ускорения (a) на квадрат времени." }
+                    ],
+                    "thermodynamics": [
+                        { "formula": "$$p \\cdot V = \\nu \\cdot R \\cdot T$$", "explanation": "Уравнение Менделеева-Клапейрона: произведение давления (p) на объём (V) равно произведению количества вещества ($\\nu$), универсальной газовой постоянной (R) и температуры (T)." },
+                        { "formula": "$$U = \\frac{3}{2} \\cdot \\nu \\cdot R \\cdot T$$", "explanation": "Внутренняя энергия идеального одноатомного газа (U) равна 3/2 произведения количества вещества ($\\nu$), газовой постоянной (R) и температуры (T)." }
+                    ],
+                    "electricity": [
+                        { "formula": "$$F = k \\cdot \\frac{|q_1 \\cdot q_2|}{r^2}$$", "explanation": "Закон Кулона: сила взаимодействия (F) между зарядами ($q_1$ и $q_2$) равна произведению коэффициента (k) на модуль произведения зарядов, делённый на квадрат расстояния (r)." },
+                        { "formula": "$$E = \\frac{F}{q}$$", "explanation": "Напряжённость электрического поля (E) равна силе (F), действующей на заряд (q), делённой на величину этого заряда. Единица измерения - Н/Кл или В/м." }
+                    ]
+                },
+                "11": {
+                    "mechanics": [
+                        { "formula": "$$E = m \\cdot c^2$$", "explanation": "Эквивалентность массы и энергии: энергия (E) равна массе (m), умноженной на квадрат скорости света (c)." },
+                        { "formula": "$$F = -k \\cdot x$$", "explanation": "Закон Гука: сила упругости (F) пропорциональна деформации (x) и направлена противоположно ей. Коэффициент k - жёсткость." }
+                    ],
+                    "electricity": [
+                        { "formula": "$$\\Phi = B \\cdot S \\cdot \\cos(\\alpha)$$", "explanation": "Магнитный поток ($\\Phi$) равен произведению индукции магнитного поля (B), площади контура (S) и косинуса угла между нормалью к контуру и вектором индукции ($\\alpha$). Единица измерения - Вб (Вебер)." },
+                        { "formula": "$$\\varepsilon = -\\frac{\\Delta \\Phi}{\\Delta t}$$", "explanation": "Закон электромагнитной индукции Фарадея: ЭДС индукции ($\\varepsilon$) равна скорости изменения магнитного потока ($\\Delta \\Phi / \\Delta t$). Единица измерения - В." }
+                    ],
+                    "optics": [
+                        { "formula": "$$d \\cdot \\sin(\\alpha) = k \\cdot \\lambda$$", "explanation": "Условие максимума дифракционной решётки: произведение периода решётки (d) на синус угла ($\\alpha$) равно произведению порядка спектра (k) на длину волны ($\\lambda$). Единица измерения - м." },
+                        { "formula": "$$E = h \\cdot \\nu$$", "explanation": "Энергия кванта света (E) равна произведению постоянной Планка (h) на частоту ($\\nu$). Единица измерения - Дж." }
+                    ],
+                    "atomic": [
+                        { "formula": "$$\\frac{1}{\\lambda} = R \\cdot \\left( \\frac{1}{n_1^2} - \\frac{1}{n_2^2} \\right)$$", "explanation": "Формула Ридберга для водородоподобных атомов: обратная длина волны ($\\frac{1}{\\lambda}$) равна произведению постоянной Ридберга (R) на разность обратных квадратов главных квантовых чисел ($n_1$ и $n_2$). Единица измерения - м⁻¹." }
+                    ]
+                }
+            };
+
+            const tasksDatabase = {
+                "7": {
+                    "mechanics": [
+                        { "question": "Автомобиль проехал $[s]$ км за $[t]$ часа. Какова средняя скорость автомобиля?", "params": {"s": [100, 300, 10], "t": [2, 5, 1]}, "answer_func": (s, t) => (s / t).toFixed(2), "solution": ["Дано: $s = [s]$ км, $t = [t]$ ч", "Формула: $v = \\frac{s}{t}$", "Решение: $v = \\frac{[s] \\text{ км}}{[t] \\text{ ч}} = [answer] \\text{ км/ч}$", "Ответ: $[answer] \\text{ км/ч}$"] },
+                        { "question": "Тело массой $[m]$ кг движется с ускорением $[a]$ м/с². Какова сила, действующая на тело?", "params": {"m": [1, 10, 1], "a": [1, 5, 0.5]}, "answer_func": (m, a) => (m * a).toFixed(2), "solution": ["Дано: $m = [m]$ кг, $a = [a] \\text{ м/с}^2$", "Формула: $F = m \\cdot a$", "Решение: $F = [m] \\text{ кг} \\cdot [a] \\text{ м/с}^2 = [answer] \\text{ Н}$", "Ответ: $[answer] \\text{ Н}$"] },
+                        { "question": "Какое давление оказывает на пол мальчик массой $[m]$ кг, если площадь подошв его обуви $[S]$ см²?", "params": {"m": [40, 70, 5], "S": [200, 300, 10]}, "answer_func": (m, S) => ((m * 10) / (S / 10000)).toFixed(2), "solution": ["Дано: $m = [m]$ кг, $S = [S]$ см$^2 = [S_m] \\text{ м}^2$, $g \\approx 10 \\text{ Н/кг}$", "Формула: $P = \\frac{F}{S}$, где $F = m \\cdot g$", "Решение: $F = [m] \\text{ кг} \\cdot 10 \\text{ Н/кг} = [F_val] \\text{ Н}$", "$P = \\frac{[F_val] \\text{ Н}}{[S_m] \\text{ м}^2} = [answer] \\text{ Па}$", "Ответ: $[answer] \\text{ Па}$"], "solution_params_func": (m, S) => ({ "S_m": (S / 10000).toFixed(4), "F_val": (m * 10).toFixed(0) }) }
+                    ],
+                    "thermodynamics": [
+                        { "question": "Какое количество теплоты необходимо для нагревания $[m]$ кг воды от $[t1]$°C до $[t2]$°C? Удельная теплоёмкость воды 4200 Дж/(кг·°C).", "params": {"m": [1, 5, 0.5], "t1": [10, 30, 5], "t2": [80, 100, 5]}, "answer_func": (m, t1, t2) => (4200 * m * (t2 - t1)).toFixed(0), "solution": ["Дано: $m = [m]$ кг, $c = 4200 \\text{ Дж/(кг} \\cdot \\text{°C)}$, $\\Delta t = [t2]\\text{°C} - [t1]\\text{°C} = [delta_t]\\text{°C}$", "Формула: $Q = c \\cdot m \\cdot \\Delta t$", "Решение: $Q = 4200 \\cdot [m] \\cdot [delta_t] = [answer] \\text{ Дж}$", "Ответ: $[answer] \\text{ Дж}$"], "solution_params_func": (m, t1, t2) => ({ "delta_t": (t2 - t1).toFixed(0) }) }
+                    ]
+                },
+                "8": {
+                    "mechanics": [
+                        { "question": "Какую работу совершает сила $[F]$ Н, перемещая тело на $[s]$ м в направлении своего действия?", "params": {"F": [30, 100, 5], "s": [5, 20, 1]}, "answer_func": (F, s) => (F * s).toFixed(2), "solution": ["Дано: $F = [F]$ Н, $s = [s]$ м, $\\alpha = 0\\text{°} (\\cos0\\text{°} = 1)$", "Формула: $A = F \\cdot s \\cdot \\cos\\alpha$", "Решение: $A = [F] \\cdot [s] \\cdot 1 = [answer] \\text{ Дж}$", "Ответ: $[answer] \\text{ Дж}$"] },
+                        { "question": "Мощность двигателя $[P]$ Вт. Какую работу он совершит за $[t]$ минут?", "params": {"P": [500, 2000, 100], "t": [10, 60, 5]}, "answer_func": (P, t) => (P * t * 60).toFixed(0), "solution": ["Дано: $P = [P]$ Вт, $t = [t] \\text{ мин} = [t_s] \\text{ с}$", "Формула: $A = P \\cdot t$", "Решение: $A = [P] \\cdot [t_s] = [answer] \\text{ Дж}$", "Ответ: $[answer] \\text{ Дж}$"], "solution_params_func": (P, t) => ({ "t_s": (t * 60).toFixed(0) }) }
+                    ],
+                    "electricity": [
+                        { "question": "Через поперечное сечение проводника за $[t]$ с проходит заряд $[q]$ Кл. Какова сила тока в проводнике?", "params": {"t": [1, 10, 1], "q": [1, 20, 1]}, "answer_func": (q, t) => (q / t).toFixed(2), "solution": ["Дано: $q = [q]$ Кл, $t = [t]$ с", "Формула: $I = \\frac{q}{t}$", "Решение: $I = \\frac{[q]}{[t]} = [answer] \\text{ А}$", "Ответ: $[answer] \\text{ А}$"] },
+                        { "question": "Напряжение на участке цепи $[U]$ В, сопротивление $[R]$ Ом. Какова сила тока?", "params": {"U": [6, 24, 2], "R": [2, 10, 1]}, "answer_func": (U, R) => (U / R).toFixed(2), "solution": ["Дано: $U = [U]$ В, $R = [R]$ Ом", "Формула: $I = \\frac{U}{R}$", "Решение: $I = \\frac{[U]}{[R]} = [answer] \\text{ А}$", "Ответ: $[answer] \\text{ А}$"] }
+                    ]
+                },
+                "9": {
+                    "mechanics": [
+                        { "question": "Тело начинает движение из состояния покоя с ускорением $[a]$ м/s². Какой путь оно пройдёт за $[t]$ с?", "params": {"a": [0.1, 1.0, 0.1], "t": [5, 20, 1]}, "answer_func": (a, t) => (0.5 * a * t * t).toFixed(2), "solution": ["Дано: $v_0 = 0 \\text{ м/с}$, $a = [a] \\text{ м/с}^2$, $t = [t]$ с", "Формула: $s = v_0 \\cdot t + \\frac{a \\cdot t^2}{2}$", "Решение: $s = 0 \\cdot [t] + \\frac{[a] \\cdot [t]^2}{2} = [answer] \\text{ м}$", "Ответ: $[answer] \\text{ м}$"] }
+                    ],
+                    "electricity": [
+                        { "question": "Электрический чайник мощностью $[P]$ Вт работает от сети $[U]$ В. Какой ток потребляет чайник?", "params": {"P": [1000, 2500, 100], "U": [200, 240, 5]}, "answer_func": (P, U) => (P / U).toFixed(2), "solution": ["Дано: $P = [P]$ Вт, $U = [U]$ В", "Формула: $P = I \\cdot U \\Rightarrow I = \\frac{P}{U}$", "Решение: $I = \\frac{[P]}{[U]} = [answer] \\text{ А}$", "Ответ: $[answer] \\text{ А}$"] }
+                    ]
+                },
+                "10": {
+                    "mechanics": [
+                        { "question": "Тело массой $[m]$ кг движется со скоростью $[v]$ м/с. Чему равен импульс тела?", "params": {"m": [1, 5, 0.5], "v": [1, 10, 1]}, "answer_func": (m, v) => (m * v).toFixed(2), "solution": ["Дано: $m = [m]$ кг, $v = [v] \\text{ м/с}$", "Формула: $p = m \\cdot v$", "Решение: $p = [m] \\cdot [v] = [answer] \\text{ кг} \\cdot \\text{м/с}$", "Ответ: $[answer] \\text{ кг} \\cdot \\text{м/с}$"] }
+                    ],
+                    "thermodynamics": [
+                        { "question": "В баллоне находится $[nu]$ моль идеального газа при температуре $[T]$ К. Чему равна внутренняя энергия газа? Универсальная газовая постоянная R = 8.31 Дж/(моль·К).", "params": {"nu": [1, 5, 0.5], "T": [250, 400, 10]}, "answer_func": (nu, T) => (1.5 * nu * 8.31 * T).toFixed(0), "solution": ["Дано: $\\nu = [nu]$ моль, $T = [T]$ К, $R = 8.31 \\text{ Дж/(моль} \\cdot \\text{К)}$", "Формула: $U = \\frac{3}{2} \\cdot \\nu \\cdot R \\cdot T$", "Решение: $U = 1.5 \\cdot [nu] \\cdot 8.31 \\cdot [T] = [answer] \\text{ Дж}$", "Ответ: $[answer] \\text{ Дж}$"] }
+                    ]
+                },
+                "11": {
+                    "electricity": [
+                        { "question": "Магнитный поток через контур площадью $[S]$ м² равен $[Phi]$ Вб. Чему равна индукция магнитного поля, если линии индукции перпендикулярны плоскости контура?", "params": {"S": [0.05, 0.5, 0.05], "Phi": [0.1, 1.0, 0.1]}, "answer_func": (S, Phi) => (Phi / S).toFixed(2), "solution": ["Дано: $\\Phi = [Phi]$ Вб, $S = [S]$ м$^2$, $\\alpha = 0\\text{°} (\\cos0\\text{°} = 1)$", "Формула: $\\Phi = B \\cdot S \\cdot \\cos\\alpha \\Rightarrow B = \\frac{\\Phi}{S}$", "Решение: $B = \\frac{[Phi]}{[S]} = [answer] \\text{ Тл}$", "Ответ: $[answer] \\text{ Тл}$"] }
+                    ],
+                    "atomic": [
+                        { "question": "Электрон в атоме водорода переходит с уровня n=$[n2]$ на уровень n=$[n1]$. Какова длина волны излучаемого фотона? Постоянная Ридберга R = 1.097·10⁷ м⁻¹.", "params": {"n1": [1, 4, 1], "n2": [2, 5, 1]}, "condition": (n1, n2) => n2 > n1, "answer_func": (n1, n2) => (1 / (1.097e7 * (1 / (n1 * n1) - 1 / (n2 * n2)))).toExponential(2), "solution": ["Дано: $n_1 = [n1]$, $n_2 = [n2]$, $R = 1.097 \\cdot 10^7 \\text{ м}^{-1}$", "Формула: $\\frac{1}{\\lambda} = R \\cdot \\left(\\frac{1}{n_1^2} - \\frac{1}{n_2^2}\\right)$", "Решение: $\\frac{1}{\\lambda} = 1.097 \\cdot 10^7 \\cdot \\left(\\frac{1}{[n1]^2} - \\frac{1}{[n2]^2}\\right) \\approx [intermediate_val] \\text{ м}^{-1}$", "$\\lambda \\approx \\frac{1}{[intermediate_val]} \\approx [answer] \\text{ м}$", "Ответ: $[answer] \\text{ м}$"], "solution_params_func": (n1, n2) => ({ "intermediate_val": (1.097e7 * (1 / (n1 * n1) - 1 / (n2 * n2))).toExponential(3) }) }
+                    ]
+                }
+            };
+
+            const topicsByGrade = {
+                "7": ["mechanics", "thermodynamics"],
+                "8": ["mechanics", "thermodynamics", "electricity"],
+                "9": ["mechanics", "electricity", "optics"],
+                "10": ["mechanics", "thermodynamics", "electricity"],
+                "11": ["mechanics", "electricity", "optics", "atomic"]
+            };
+
+            const topicNames = {
+                "mechanics": "Механика",
+                "thermodynamics": "Термодинамика",
+                "electricity": "Электричество",
+                "optics": "Оптика",
+                "atomic": "Атомная физика"
+            };
+
+            const algebraFormulasDatabase = [
+                { "formula": "$$(a+b)^2 = a^2 + 2ab + b^2$$", "explanation": "Формула квадрата суммы." },
+                { "formula": "$$(a-b)^2 = a^2 - 2ab + b^2$$", "explanation": "Формула квадрата разности." },
+                { "formula": "$$a^2 - b^2 = (a-b)(a+b)$$", "explanation": "Формула разности квадратов." },
+                { "formula": "$$ax + b = c \\Rightarrow x = \\frac{c-b}{a}$$", "explanation": "Решение линейного уравнения." },
+                { "formula": "$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$", "explanation": "Формула корней квадратного уравнения (дискриминант)." }
+            ];
+
+            const algebraTasksDatabase = [
+                {
+                    type: "linear-equation",
+                    name: "Линейное уравнение",
+                    keywords: ["линейное уравнение", "ax + b = c", "решить x"],
+                    grade_range: "7-9",
+                    generate: function() {
+                        const a = getRandomValue(1, 10, 1);
+                        const b = getRandomValue(-10, 10, 1);
+                        const c = getRandomValue(-15, 15, 1);
+
+                        const question = `Решите уравнение: $${a}x + ${b} = ${c}$`;
+                        const answer = ((c - b) / a).toFixed(2);
+
+                        const solution = [
+                            `Дано уравнение: $${a}x + ${b} = ${c}$`,
+                            `Перенесем ${b} в правую часть: $${a}x = ${c} - ${b}$`,
+                            `Вычислим правую часть: $${a}x = ${c - b}$`,
+                            `Разделим обе части на ${a}$: $x = \\frac{${c - b}}{${a}}$`,
+                            `Ответ: $x = ${answer}$`
+                        ];
+                        return { question, answer, solution };
+                    }
+                },
+                {
+                    type: "quadratic-equation",
+                    name: "Квадратное уравнение",
+                    keywords: ["квадратное уравнение", "дискриминант", "ax^2 + bx + c = 0"],
+                    grade_range: "8-11",
+                    generate: function() {
+                        let a, b, c;
+                        let x1, x2;
+                        do {
+                            a = getRandomValue(1, 5, 1);
+                            b = getRandomValue(-5, 5, 1);
+                            c = getRandomValue(-5, 5, 1);
+                            const D = b * b - 4 * a * c;
+                            if (D >= 0) {
+                                x1 = (-b + Math.sqrt(D)) / (2 * a);
+                                x2 = (-b - Math.sqrt(D)) / (2 * a);
+                            }
+                        } while (isNaN(x1) || isNaN(x2) || (x1 % 1 !== 0 && x2 % 1 !== 0) || Math.abs(x1) > 100 || Math.abs(x2) > 100);
+
+                        const question = `Решите уравнение: $${a}x^2 + ${b}x + ${c} = 0$`;
+                        const answer = (x1 === x2) ? x1.toFixed(2) : `${x1.toFixed(2)}; ${x2.toFixed(2)}`;
+
+                        const solution = [
+                            `Дано уравнение: $${a}x^2 + ${b}x + ${c} = 0$`,
+                            `Вычислим дискриминант $D = b^2 - 4ac$`,
+                            `$D = (${b})^2 - 4 \\cdot (${a}) \\cdot (${c}) = ${b*b} - ${4*a*c} = ${b*b - 4*a*c}$`,
+                            `Так как $D ${b*b - 4*a*c >= 0 ? '\\ge' : '<'} 0$, то ${b*b - 4*a*c >= 0 ? 'корни существуют.' : 'корней нет.'}`,
+                            `$x_{1,2} = \\frac{-b \\pm \\sqrt{D}}{2a}$`,
+                            `$x_1 = \\frac{${-b} + \\sqrt{${b*b - 4*a*c}}}{${2*a}} = ${x1.toFixed(2)}$`,
+                            `$x_2 = \\frac{${-b} - \\sqrt{${b*b - 4*a*c}}}{${2*a}} = ${x2.toFixed(2)}$`,
+                            `Ответ: ${answer}`
+                        ];
+                        return { question, answer, solution };
+                    }
+                },
+                {
+                    type: "system-of-equations",
+                    name: "Система линейных уравнений",
+                    keywords: ["система уравнений", "метод сложения", "метод подстановки"],
+                    grade_range: "8-10",
+                    generate: function() {
+                        const x = getRandomValue(-2, 2, 1);
+                        const y = getRandomValue(-2, 2, 1);
+
+                        const a1 = getRandomValue(1, 5, 1);
+                        const b1 = getRandomValue(1, 5, 1);
+                        const c1 = a1 * x + b1 * y;
+
+                        const a2 = getRandomValue(1, 5, 1);
+                        const b2 = getRandomValue(1, 5, 1);
+                        const c2 = a2 * x + b2 * y;
+
+                        const question = `Решите систему уравнений:
+                            $$\\begin{cases} ${a1}x + ${b1}y = ${c1} \\\\ ${a2}x + ${b2}y = ${c2} \\end{cases}$$`;
+                        const answer = `x=${x}; y=${y}`;
+
+                        const solution = [
+                            `Дана система уравнений:
+                            $$\\begin{cases} ${a1}x + ${b1}y = ${c1} \\quad (1) \\\\ ${a2}x + ${b2}y = ${c2} \\quad (2) \\end{cases}$$`,
+                            `Умножим уравнение (1) на ${a2} и уравнение (2) на ${a1} (метод сложения):`,
+                            `$${a1*a2}x + ${b1*a2}y = ${c1*a2}$`,
+                            `$${a2*a1}x + ${b2*a1}y = ${c2*a1}$`,
+                            `Вычтем одно уравнение из другого: $( ${b1*a2} - ${b2*a1} )y = ${c1*a2} - ${c2*a1}$`,
+                            `$${b1*a2 - b2*a1}y = ${c1*a2 - c2*a1}$`,
+                            `$y = \\frac{${c1*a2 - c2*a1}}{${b1*a2 - b2*a1}} = ${y}$`,
+                            `Подставим $y = ${y}$ в первое уравнение: $${a1}x + ${b1}(${y}) = ${c1}$`,
+                            `$${a1}x + ${b1*y} = ${c1}$`,
+                            `$${a1}x = ${c1 - b1*y}$`,
+                            `$x = \\frac{${c1 - b1*y}}{${a1}} = ${x}$`,
+                            `Ответ: $x = ${x}, y = ${y}$`
+                        ];
+                        return { question, answer, solution };
+                    }
+                },
+                {
+                    type: "expression-evaluation",
+                    name: "Вычисление выражения",
+                    keywords: ["вычисление выражения", "подстановка", "значение выражения"],
+                    grade_range: "7-8",
+                    generate: function() {
+                        const a = getRandomValue(1, 10, 1);
+                        const x = getRandomValue(-5, 5, 1);
+                        const b = getRandomValue(-7, 7, 1);
+
+                        const question = `Вычислите значение выражения $${a} \\cdot x + ${b}$, если $x = ${x}$.`;
+                        const answer = (a * x + b).toFixed(2);
+
+                        const solution = [
+                            `Дано выражение: $${a} \\cdot x + ${b}$`,
+                            `Подставим $x = ${x}$: $${a} \\cdot (${x}) + ${b}$`,
+                            `Выполним умножение: $${a * x} + ${b}$`,
+                            `Выполним сложение: $${a * x + b}$`,
+                            `Ответ: ${answer}`
+                        ];
+                        return { question, answer, solution };
+                    }
+                },
+                {
+                    type: "factoring-expression",
+                    name: "Разложение на множители",
+                    keywords: ["разложение на множители", "квадратный трехчлен", "корни"],
+                    grade_range: "8-9",
+                    generate: function() {
+                        const p = getRandomValue(1, 5, 1);
+                        const q = getRandomValue(1, 5, 1);
+                        const b = p + q;
+                        const c = p * q;
+
+                        const question = `Разложите на множители квадратный трехчлен: $x^2 + ${b}x + ${c}$`;
+                        const answer = `(x+${p})(x+${q})`;
+
+                        const solution = [
+                            `Дано выражение: $x^2 + ${b}x + ${c}$`,
+                            `Нужно найти два числа (p и q), такие что $p+q = ${b}$ и $p \\cdot q = ${c}$.`,
+                            `Эти числа: $p = ${p}$ и $q = ${q}$.`,
+                            `Тогда выражение раскладывается как $(x+p)(x+q)$.`,
+                            `Ответ: $(x+${p})(x+${q})$`
+                        ];
+                        return { question, answer, solution };
+                    }
+                },
+                {
+                    type: "inequality-linear",
+                    name: "Линейное неравенство",
+                    keywords: ["линейное неравенство", "решить неравенство", "знак неравенства"],
+                    grade_range: "8-9",
+                    generate: function() {
+                        const a = getRandomValue(1, 5, 1);
+                        const b = getRandomValue(-5, 5, 1);
+                        const c = getRandomValue(-5, 5, 1);
+                        const operator = Math.random() < 0.5 ? '>' : '<';
+
+                        let solutionX;
+                        let solutionInterval;
+
+                        if (operator === '>') {
+                            solutionX = (c - b) / a;
+                            solutionInterval = `x > ${solutionX.toFixed(2)}`;
+                        } else {
+                            solutionX = (c - b) / a;
+                            solutionInterval = `x < ${solutionX.toFixed(2)}`;
+                        }
+
+                        const question = `Решите неравенство: $${a}x + ${b} ${operator} ${c}$`;
+                        const answer = solutionInterval;
+
+                        const solution = [
+                            `Дано неравенство: $${a}x + ${b} ${operator} ${c}$`,
+                            `Перенесем ${b} в правую часть: $${a}x ${operator} ${c} - ${b}$`,
+                            `$${a}x ${operator} ${c - b}$`,
+                            `Разделим обе части на ${a}$. Так как ${a} > 0$, знак неравенства не меняется.`,
+                            `$x ${operator} \\frac{${c - b}}{${a}}$`,
+                            `Ответ: $x ${operator} ${solutionX.toFixed(2)}$`
+                        ];
+                        return { question, answer, solution };
+                    }
+                },
+                {
+                    type: "function-value",
+                    name: "Значение функции",
+                    keywords: ["значение функции", "график функции", "подстановка в функцию"],
+                    grade_range: "9-11",
+                    generate: function() {
+                        const a = getRandomValue(1, 5, 1);
+                        const b = getRandomValue(-5, 5, 1);
+                        const x_val = getRandomValue(-5, 5, 1);
+
+                        const question = `Найдите значение функции $f(x) = ${a}x + ${b}$ при $x = ${x_val}$.`;
+                        const answer = (a * x_val + b).toFixed(2);
+
+                        const solution = [
+                            `Дана функция: $f(x) = ${a}x + ${b}$`,
+                            `Нужно найти $f(${x_val})$.`,
+                            `Подставим $x = ${x_val}$ в выражение для функции: $f(${x_val}) = ${a} \\cdot (${x_val}) + ${b}$`,
+                            `Выполним вычисления: $f(${x_val}) = ${a * x_val} + ${b} = ${a * x_val + b}$`,
+                            `Ответ: $f(${x_val}) = ${answer}$`
+                        ];
+                        return { question, answer, solution };
+                    }
+                }
+            ];
+
+            const solutionAnalogiesDatabase = [
+                {
+                    keywords: ["линейное уравнение", "решить x", "ax + b = c"],
+                    title: "Как решать линейные уравнения ($ax + b = c$)",
+                    description: "Линейное уравнение — это уравнение, в котором неизвестная (обычно $x$) находится в первой степени. Цель — изолировать $x$ на одной стороне уравнения.",
+                    steps: [
+                        "1. Перенесите все слагаемые без $x$ в одну сторону уравнения (обычно в правую), меняя знаки на противоположные.",
+                        "2. Вычислите значения на обеих сторонах уравнения.",
+                        "3. Разделите обе части уравнения на коэффициент при $x$ (число перед $x$).",
+                        "4. Запишите окончательный ответ для $x$."
+                    ],
+                    example_formula: "$$2x + 5 = 11 \\Rightarrow 2x = 11 - 5 \\Rightarrow 2x = 6 \\Rightarrow x = \\frac{6}{2} \\Rightarrow x = 3$$"
+                },
+                {
+                    keywords: ["квадратное уравнение", "дискриминант", "ax^2 + bx + c = 0"],
+                    title: "Как решать квадратные уравнения ($ax^2 + bx + c = 0$)",
+                    description: "Квадратное уравнение — это уравнение второй степени. Обычно решается с помощью формулы дискриминанта.",
+                    steps: [
+                        "1. Убедитесь, что уравнение приведено к стандартному виду: $ax^2 + bx + c = 0$.",
+                        "2. Вычислите дискриминант (D) по формуле: $D = b^2 - 4ac$.",
+                        "3. Проанализируйте значение D:",
+                        "   - Если $D > 0$, есть два различных действительных корня: $x_{1,2} = \\frac{-b \\pm \\sqrt{D}}{2a}$.",
+                        "   - Если $D = 0$, есть один действительный корень (или два совпадающих): $x = \\frac{-b}{2a}$.",
+                        "   - Если $D < 0$, действительных корней нет.",
+                        "4. Подставьте значения $a, b, c$ и $D$ в соответствующую формулу для корней."
+                    ],
+                    example_formula: "$$x^2 - 5x + 6 = 0 \\Rightarrow D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$$$x_{1,2} = \\frac{5 \\pm \\sqrt{1}}{2} \\Rightarrow x_1 = 3, x_2 = 2$$"
+                },
+                {
+                    keywords: ["система уравнений", "метод сложения", "метод подстановки"],
+                    title: "Как решать системы линейных уравнений",
+                    description: "Система линейных уравнений состоит из двух или более линейных уравнений с несколькими неизвестными. Основные методы решения — метод подстановки и метод сложения (или вычитания).",
+                    steps: [
+                        "**Метод подстановки:**",
+                        "1. Из одного уравнения выразите одну переменную через другую (например, $x$ через $y$).",
+                        "2. Подставьте это выражение во второе уравнение. Получится уравнение с одной переменной.",
+                        "3. Решите полученное уравнение, найдите значение этой переменной.",
+                        "4. Подставьте найденное значение обратно в выражение из шага 1, чтобы найти вторую переменную.",
+                        "**Метод сложения/вычитания:**",
+                        "1. Умножьте одно или оба уравнения на такие числа, чтобы коэффициенты при одной из переменных стали противоположными по знаку или равными.",
+                        "2. Сложите или вычтите уравнения, чтобы исключить одну переменную.",
+                        "3. Решите полученное уравнение с одной переменной.",
+                        "4. Подставьте найденное значение в любое из исходных уравнений, чтобы найти вторую переменную."
+                    ],
+                    example_formula: "$$\\begin{cases} x + y = 5 \\\\ x - y = 1 \\end{cases} \\Rightarrow (x+y)+(x-y) = 5+1 \\Rightarrow 2x = 6 \\Rightarrow x=3$$$$3+y=5 \\Rightarrow y=2$$"
+                },
+                {
+                    keywords: ["вычисление выражения", "подстановка", "значение выражения"],
+                    title: "Как вычислять значения выражений",
+                    description: "Вычисление значения выражения сводится к подстановке известных числовых значений вместо переменных и выполнению арифметических операций в правильном порядке.",
+                    steps: [
+                        "1. Внимательно запишите данное выражение и известные значения переменных.",
+                        "2. Подставьте числовые значения вместо соответствующих переменных в выражении.",
+                        "3. Выполните все арифметические операции, соблюдая порядок: сначала операции в скобках, затем возведение в степень и извлечение корня, затем умножение и деление, и в конце сложение и вычитание.",
+                        "4. Запишите окончательный результат."
+                    ],
+                    example_formula: "$$3x + 7 \\text{ при } x=4 \\Rightarrow 3 \\cdot 4 + 7 = 12 + 7 = 19$$"
+                },
+                {
+                    keywords: ["разложение на множители", "квадратный трехчлен", "корни"],
+                    title: "Как разложить квадратный трехчлен на множители ($ax^2 + bx + c$)",
+                    description: "Разложение квадратного трехчлена на множители обычно сводится к нахождению его корней. Если корни $x_1$ и $x_2$ найдены, то $ax^2 + bx + c = a(x-x_1)(x-x_2)$.",
+                    steps: [
+                        "1. Найдите корни квадратного трехчлена ($x_1, x_2$) с помощью формулы дискриминанта ($D = b^2 - 4ac$, $x_{1,2} = \\frac{-b \\pm \\sqrt{D}}{2a}$).",
+                        "2. Если корни существуют, используйте формулу разложения: $a(x-x_1)(x-x_2)$.",
+                        "3. Если $a=1$, то можно искать два числа $p$ и $q$, такие что $p+q=b$ и $p \\cdot q = c$. Тогда разложение будет $(x+p)(x+q)$.",
+                        "4. Если корней нет, то квадратный трехчлен нельзя разложить на линейные множители над действительными числами."
+                    ],
+                    example_formula: "$$x^2 - 7x + 10 = 0 \\Rightarrow x_1=5, x_2=2 \\Rightarrow (x-5)(x-2)$$"
+                },
+                {
+                    keywords: ["линейное неравенство", "решить неравенство", "знак неравенства"],
+                    title: "Как решать линейные неравенства ($ax + b > c$ или $ax + b < c$)",
+                    description: "Решение линейного неравенства похоже на решение линейного уравнения, но с одним важным отличием: при делении или умножении на отрицательное число знак неравенства меняется на противоположный.",
+                    steps: [
+                        "1. Перенесите все слагаемые с переменной в одну сторону, а константы — в другую, как в уравнении.",
+                        "2. Выполните арифметические операции.",
+                        "3. Разделите обе части неравенства на коэффициент при переменной.",
+                        "4. **Важно:** Если вы делите или умножаете на отрицательное число, обязательно измените знак неравенства на противоположный (например, из $>$ на $<$ или наоборот).",
+                        "5. Запишите ответ в виде интервала или неравенства (например, $x > 5$)."
+                    ],
+                    example_formula: "$$2x - 3 > 7 \\Rightarrow 2x > 10 \\Rightarrow x > 5$$$$-3x + 1 < 7 \\Rightarrow -3x < 6 \\Rightarrow x > -2$$"
+                },
+                {
+                    keywords: ["значение функции", "график функции", "подстановка в функцию"],
+                    title: "Как найти значение функции в точке",
+                    description: "Чтобы найти значение функции $f(x)$ в определенной точке (например, при $x=a$), нужно просто подставить значение $a$ вместо $x$ в выражение функции и выполнить все вычисления.",
+                    steps: [
+                        "1. Запишите выражение для функции $f(x)$ и значение $x$, для которого нужно найти $f(x)$.",
+                        "2. Подставьте это значение $x$ во все места, где $x$ встречается в выражении функции.",
+                        "3. Выполните все арифметические операции в правильном порядке.",
+                        "4. Полученный результат и будет значением функции в данной точке."
+                    ],
+                    example_formula: "$$f(x) = x^2 + 2x - 1 \\text{ при } x=3 \\Rightarrow f(3) = 3^2 + 2(3) - 1 = 9 + 6 - 1 = 14$$"
+                }
+            ];
+
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const customModalOverlay = document.getElementById('custom-modal-overlay');
+            const modalTitle = document.getElementById('modal-title');
+            const modalMessage = document.getElementById('modal-message');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const mainTabsContainer = document.getElementById('main-tabs');
+
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(() => {
+                    loadingOverlay.classList.add('hidden');
+                    setTimeout(() => {
+                        loadingOverlay.style.display = 'none';
+                        mainTabsContainer.classList.add('visible');
+                    }, 1000);
+                }, 1500);
+
+                tabBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        tabBtns.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        const tabId = this.getAttribute('data-tab');
+                        document.querySelectorAll('.content').forEach(content => {
+                            content.classList.remove('active');
+                        });
+                        document.getElementById(tabId).classList.add('active');
+
+                        if (tabId === 'all-formulas') {
+                            updateFormulasList();
+                        }
+                        if (tabId === 'algebra') {
+                        }
+                        if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                            MathJax.typesetPromise();
+                        }
+                    });
+                });
+
+                updateTopicsCheckboxes();
+                document.getElementById('grade').addEventListener('change', updateTopicsCheckboxes);
+                document.getElementById('generate-btn').addEventListener('click', generateFormula);
+                document.getElementById('generate-task-btn').addEventListener('click', generateTask);
+                document.getElementById('check-answer-btn').addEventListener('click', checkAnswer);
+
+                document.getElementById('generate-algebra-task-btn').addEventListener('click', generateAlgebraTask);
+                document.getElementById('check-algebra-answer-btn').addEventListener('click', checkAlgebraAnswer);
+
+                document.getElementById('filter-grade').addEventListener('change', updateFormulasList);
+
+                document.getElementById('analogy-search-btn').addEventListener('click', searchSolutionAnalogy);
+                document.getElementById('analogy-search-input').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchSolutionAnalogy();
+                    }
+                });
+
+                modalCloseBtn.addEventListener('click', hideCustomModal);
+
+                if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                    MathJax.typesetPromise();
+                }
+            });
+
+            function showCustomModal(title, message) {
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                customModalOverlay.classList.add('visible');
+            }
+
+            function hideCustomModal() {
+                customModalOverlay.classList.remove('visible');
+            }
+
+            function getRandomValue(min, max, step) {
+                return (Math.round((Math.random() * (max - min) + min) / step) * step);
+            }
+
+            function updateTopicsCheckboxes() {
+                const grade = document.getElementById('grade').value;
+                const topicsContainer = document.getElementById('topics-checkboxes');
+                topicsContainer.innerHTML = '';
+                topicsByGrade[grade].forEach(topic => {
+                    const div = document.createElement('div');
+                    div.className = 'topic-checkbox';
+                    div.innerHTML = `<input type="checkbox" id="topic-${topic}" name="topics" value="${topic}" checked><label for="topic-${topic}">${topicNames[topic]}</label>`;
+                    topicsContainer.appendChild(div);
+                });
+            }
+
+            function generateFormula() {
+                const grade = document.getElementById('grade').value;
+                const selectedTopics = Array.from(document.querySelectorAll('input[name="topics"]:checked')).map(el => el.value);
+
+                if (selectedTopics.length === 0) {
+                    showCustomModal('Ошибка', 'Пожалуйста, выберите хотя бы одну тему!');
+                    return;
+                }
+
+                const randomTopic = selectedTopics[Math.floor(Math.random() * selectedTopics.length)];
+                const formulas = formulasDatabase[grade][randomTopic];
+                const randomFormula = formulas[Math.floor(Math.random() * formulas.length)];
+
+                const formulaContainer = document.getElementById('formula-container');
+                document.getElementById('formula').innerHTML = randomFormula.formula;
+                document.getElementById('explanation').innerHTML = `<strong>${topicNames[randomTopic]}:</strong> ${randomFormula.explanation}`;
+
+                if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                    MathJax.typesetPromise([document.getElementById('formula')]).then(() => {
+                        formulaContainer.classList.remove('show');
+                        setTimeout(() => {
+                            formulaContainer.classList.add('show');
+                        }, 10);
+                    });
+                } else {
+                    formulaContainer.classList.remove('show');
+                    setTimeout(() => {
+                        formulaContainer.classList.add('show');
+                    }, 10);
+                }
+            }
+
+            function generateTask() {
+                const grade = document.getElementById('task-grade').value;
+                const topic = document.getElementById('task-topic').value;
+
+                let allTasks = [];
+                let availableTopics = topicsByGrade[grade];
+                if (topic !== 'all') {
+                    availableTopics = [topic];
+                }
+
+                availableTopics.forEach(t => {
+                    if (tasksDatabase[grade] && tasksDatabase[grade][t]) {
+                        allTasks = allTasks.concat(tasksDatabase[grade][t]);
+                    }
+                });
+
+                if (allTasks.length === 0) {
+                    showCustomModal('Ошибка', 'Нет задач для выбранных параметров!');
+                    return;
+                }
+
+                let randomTaskTemplate;
+                let generatedParams = {};
+                let actualAnswer;
+                let solutionStepsContent = [];
+
+                do {
+                    randomTaskTemplate = allTasks[Math.floor(Math.random() * allTasks.length)];
+                    generatedParams = {};
+                    if (randomTaskTemplate.params) {
+                        for (const paramName in randomTaskTemplate.params) {
+                            const [min, max, step] = randomTaskTemplate.params[paramName];
+                            generatedParams[paramName] = getRandomValue(min, max, step);
+                        }
+                    }
+                } while (randomTaskTemplate.condition && !randomTaskTemplate.condition(...Object.values(generatedParams)));
+
+                actualAnswer = randomTaskTemplate.answer_func(...Object.values(generatedParams));
+
+                let questionText = randomTaskTemplate.question;
+                for (const paramName in generatedParams) {
+                    questionText = questionText.replace(`[${paramName}]`, generatedParams[paramName]);
+                }
+
+                let solutionParams = {};
+                if (randomTaskTemplate.solution_params_func) {
+                    solutionParams = randomTaskTemplate.solution_params_func(...Object.values(generatedParams));
+                }
+
+                solutionStepsContent = randomTaskTemplate.solution.map(step => {
+                    let formattedStep = step.replace(/\[answer\]/g, actualAnswer);
+                    for (const paramName in generatedParams) {
+                        formattedStep = formattedStep.replace(new RegExp(`\\[${paramName}\\]`, 'g'), generatedParams[paramName]);
+                    }
+                    for (const solParamName in solutionParams) {
+                        formattedStep = formattedStep.replace(new RegExp(`\\[${solParamName}\\]`, 'g'), solutionParams[solParamName]);
+                    }
+                    return `<div class="solution-step">${formattedStep}</div>`;
+                }).join('');
+
+                document.getElementById('task-text').textContent = questionText;
+                document.getElementById('user-answer').value = '';
+                document.getElementById('solution').style.display = 'none';
+                document.getElementById('solution-steps').innerHTML = solutionStepsContent;
+                document.getElementById('answer-result').innerHTML = '';
+
+                const taskContainer = document.getElementById('task-container');
+                taskContainer.classList.remove('show');
+                taskContainer.style.display = 'block';
+                taskContainer.dataset.correctAnswer = actualAnswer;
+
+                if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                    MathJax.typesetPromise([taskContainer]).then(() => {
+                        setTimeout(() => {
+                            taskContainer.classList.add('show');
+                        }, 10);
+                    });
+                } else {
+                    setTimeout(() => {
+                        taskContainer.classList.add('show');
+                    }, 10);
+                }
+            }
+
+            function checkAnswer() {
+                const userAnswer = document.getElementById('user-answer').value.trim();
+                const correctAnswer = document.getElementById('task-container').dataset.correctAnswer;
+
+                const solutionDiv = document.getElementById('solution');
+                const resultDiv = document.getElementById('answer-result');
+
+                if (Math.abs(parseFloat(userAnswer) - parseFloat(correctAnswer)) < 0.01) {
+                    resultDiv.innerHTML = `<span class="correct">Правильно! Ответ: ${correctAnswer}</span>`;
+                } else {
+                    resultDiv.innerHTML = `<span class="incorrect">Неверно. Правильный ответ: ${correctAnswer}</span>`;
+                }
+                solutionDiv.style.display = 'block';
+
+                if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                    MathJax.typesetPromise([solutionDiv]);
+                }
+            }
+
+            function updateFormulasList() {
+                const grade = document.getElementById('filter-grade').value;
+                const formulasList = document.getElementById('formulas-list');
+                formulasList.innerHTML = '';
+
+                let gradesToShow = [];
+                if (grade === 'all') {
+                    gradesToShow = ['7', '8', '9', '10', '11'];
+                } else {
+                    gradesToShow = [grade];
+                }
+
+                gradesToShow.forEach(g => {
+                    if (!formulasDatabase[g]) return;
+                    Object.keys(formulasDatabase[g]).forEach(topic => {
+                        formulasDatabase[g][topic].forEach(formula => {
+                            const card = document.createElement('div');
+                            card.className = 'formula-card';
+                            card.innerHTML = `
+                                <div class="topic">${topicNames[topic]} (${g} класс)</div>
+                                <div class="formula">${formula.formula}</div>
+                                <div class="description">${formula.explanation}</div>
+                            `;
+                            formulasList.appendChild(card);
+                        });
+                    });
+                });
+
+                if (grade === 'all' || !grade) {
+                    algebraFormulasDatabase.forEach(formula => {
+                        const card = document.createElement('div');
+                        card.className = 'formula-card';
+                        card.innerHTML = `
+                            <div class="topic">Алгебра</div>
+                            <div class="formula">${formula.formula}</div>
+                            <div class="description">${formula.explanation}</div>
+                        `;
+                        formulasList.appendChild(card);
+                    });
+                }
+
+                if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                    MathJax.typesetPromise([formulasList]);
+                }
+            }
+
+            function generateAlgebraTask() {
+                const taskType = document.getElementById('algebra-task-type').value;
+                const selectedTask = algebraTasksDatabase.find(task => task.type === taskType);
+
+                if (!selectedTask) {
+                    showCustomModal('Ошибка', 'Неизвестный тип задачи по алгебре!');
+                    return;
+                }
+
+                const generated = selectedTask.generate();
+
+                document.getElementById('algebra-task-text').textContent = generated.question;
+                document.getElementById('algebra-user-answer').value = '';
+                document.getElementById('algebra-solution').style.display = 'none';
+                document.getElementById('algebra-solution-steps').innerHTML = generated.solution.map(step => `<div class="solution-step">${step}</div>`).join('');
+                document.getElementById('algebra-answer-result').innerHTML = '';
+
+                document.getElementById('algebra-task-container').dataset.correctAnswer = generated.answer;
+                document.getElementById('algebra-task-container').dataset.currentQuestion = generated.question;
+
+                const algebraTaskContainer = document.getElementById('algebra-task-container');
+                algebraTaskContainer.classList.remove('show');
+                algebraTaskContainer.style.display = 'block';
+
+                if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                    MathJax.typesetPromise([algebraTaskContainer]).then(() => {
+                        setTimeout(() => {
+                            algebraTaskContainer.classList.add('show');
+                        }, 10);
+                    });
+                } else {
+                    setTimeout(() => {
+                        algebraTaskContainer.classList.add('show');
+                    }, 10);
+                }
+            }
+
+            function checkAlgebraAnswer() {
+                const userAnswer = document.getElementById('algebra-user-answer').value.trim();
+                const correctAnswer = document.getElementById('algebra-task-container').dataset.correctAnswer;
+
+                const solutionDiv = document.getElementById('algebra-solution');
+                const resultDiv = document.getElementById('algebra-answer-result');
+
+                const taskType = document.getElementById('algebra-task-type').value;
+                if (taskType === "factoring-expression") {
+                    const normalizedUserAnswer = userAnswer.toLowerCase().replace(/\s/g, '');
+                    const normalizedCorrectAnswer = correctAnswer.toLowerCase().replace(/\s/g, '');
+
+                    const correctFactors = normalizedCorrectAnswer.match(/\(x[+-]\d+\)/g);
+                    let isCorrectFactoring = false;
+                    if (correctFactors && correctFactors.length === 2) {
+                        if ((normalizedUserAnswer.includes(correctFactors[0]) && normalizedUserAnswer.includes(correctFactors[1])) ||
+                            (normalizedUserAnswer.includes(correctFactors[1]) && normalizedUserAnswer.includes(correctFactors[0]))) {
+                            isCorrectFactoring = true;
+                        }
+                    }
+
+                    if (isCorrectFactoring) {
+                        resultDiv.innerHTML = `<span class="correct">Правильно! Ответ: ${correctAnswer}</span>`;
+                    } else {
+                        resultDiv.innerHTML = `<span class="incorrect">Неверно. Правильный ответ: ${correctAnswer}</span>`;
+                    }
+
+                } else {
+                    if (Math.abs(parseFloat(userAnswer) - parseFloat(correctAnswer)) < 0.01) {
+                        resultDiv.innerHTML = `<span class="correct">Правильно! Ответ: ${correctAnswer}</span>`;
+                    } else {
+                        resultDiv.innerHTML = `<span class="incorrect">Неверно. Правильный ответ: ${correctAnswer}</span>`;
+                    }
+                }
+
+                solutionDiv.style.display = 'block';
+
+                if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                    MathJax.typesetPromise([solutionDiv]);
+                }
+            }
+
+            function searchSolutionAnalogy() {
+                const searchTerm = document.getElementById('analogy-search-input').value.toLowerCase().trim();
+                const analogyResultContainer = document.getElementById('analogy-result-container');
+                const analogyTitle = document.getElementById('analogy-result-title');
+                const analogyDescription = document.getElementById('analogy-result-description');
+                const analogyExampleFormula = document.getElementById('analogy-example-formula');
+
+                let foundAnalogy = null;
+                for (const analogy of solutionAnalogiesDatabase) {
+                    if (analogy.keywords.some(keyword => searchTerm.includes(keyword.toLowerCase()))) {
+                        foundAnalogy = analogy;
+                        break;
+                    }
+                }
+
+                if (foundAnalogy) {
+                    analogyTitle.textContent = foundAnalogy.title;
+                    analogyDescription.innerHTML = foundAnalogy.description + '<br><br><strong>Шаги решения:</strong><ol>' + foundAnalogy.steps.map(step => `<li>${step}</li>`).join('') + '</ol>';
+                    analogyExampleFormula.innerHTML = `Пример: ${foundAnalogy.example_formula}`;
+                    analogyResultContainer.classList.add('show');
+                } else {
+                    analogyTitle.textContent = "Не найдено";
+                    analogyDescription.textContent = "Попробуйте ввести другие ключевые слова, например: 'линейное уравнение', 'квадратное уравнение', 'система уравнений'.";
+                    analogyExampleFormula.innerHTML = "";
+                    analogyResultContainer.classList.add('show');
+                }
+
+                if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                    MathJax.typesetPromise([analogyResultContainer]);
+                }
+            }
+
+            let scene, camera, renderer, controls;
+            let particlesMesh;
+            const particleCount = 2000;
+            const particleGeometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            const color1 = new THREE.Color(0x5a3cff);
+            const color2 = new THREE.Color(0x00e0ff);
+
+            function initThreeJS() {
+                const canvas = document.getElementById('three-bg');
+
+                scene = new THREE.Scene();
+
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.z = 5;
+
+                renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
+                controls.screenSpacePanning = false;
+                controls.minDistance = 2;
+                controls.maxDistance = 10;
+                controls.enableZoom = false;
+                controls.enablePan = false;
+                controls.autoRotate = true;
+                controls.autoRotateSpeed = 0.5;
+
+                for (let i = 0; i < particleCount; i++) {
+                    const radius = Math.random() * 5 + 1;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos(Math.random() * 2 - 1);
+
+                    positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                    positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                    positions[i * 3 + 2] = radius * Math.cos(phi);
+
+                    const mixFactor = Math.random();
+                    const tempColor = new THREE.Color();
+                    tempColor.lerpColors(color1, color2, mixFactor);
+                    colors[i * 3] = tempColor.r;
+                    colors[i * 3 + 1] = tempColor.g;
+                    colors[i * 3 + 2] = tempColor.b;
+                }
+
+                particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+                const particleMaterial = new THREE.PointsMaterial({
+                    size: 0.05,
+                    vertexColors: true,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true,
+                    opacity: 0.8
+                });
+
+                particlesMesh = new THREE.Points(particleGeometry, particleMaterial);
+                scene.add(particlesMesh);
+
+                window.addEventListener('resize', onWindowResize, false);
+            }
+
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            function animateThreeJS() {
+                requestAnimationFrame(animateThreeJS);
+
+                particlesMesh.rotation.y += 0.0005;
+                particlesMesh.rotation.x += 0.0002;
+
+                controls.update();
+                renderer.render(scene, camera);
+            }
+
+            window.onload = function() {
+                initThreeJS();
+                animateThreeJS();
+
+                particlesJS("particles-js", {
+                    "particles": {
+                        "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                        "color": { "value": "#ffffff" },
+                        "shape": { "type": "circle", "stroke": { "width": 0, "color": "#000000" }, "polygon": { "nb_sides": 5 } },
+                        "opacity": { "value": 0.5, "random": false, "anim": { "enable": false, "speed": 1, "opacity_min": 0.1, "sync": false } },
+                        "size": { "value": 3, "random": true, "anim": { "enable": false, "speed": 40, "size_min": 0.1, "sync": false } },
+                        "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.4, "width": 1 },
+                        "move": { "enable": true, "speed": 2, "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false, "attract": { "enable": false, "rotateX": 600, "rotateY": 1200 } }
+                    },
+                    "interactivity": {
+                        "detect_on": "canvas",
+                        "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true },
+                        "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 1 } }, "bubble": { "distance": 400, "size": 40, "duration": 2, "opacity": 8, "speed": 3 }, "repulse": { "distance": 200, "duration": 0.4 }, "push": { "particles_nb": 4 }, "remove": { "particles_nb": 2 } }
+                    },
+                    "retina_detect": true
+                });
+            };
+        </script>
+    </body>
+    </html>

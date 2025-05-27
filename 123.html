@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Designer's Metamorphosis - Visual Test</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.164.1/three.min.js"></script>
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+    <style>
+
+        :root {
+            --font-primary: 'Montserrat', sans-serif;
+            --font-secondary: 'Inter', sans-serif;
+            --color-primary: #8A2BE2;
+            --color-secondary: #FF69B4;
+            --color-text-light: #E0E0E0;
+            --color-bg-dark: #1A1A2E;
+            --transition-speed: 0.8s;
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-primary);
+            color: var(--color-text-light);
+            background-color: var(--color-bg-dark);
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            cursor: default;
+        }
+
+        #app-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--color-bg-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: var(--color-text-light);
+            font-size: 1.2rem;
+            transition: opacity 1s var(--ease-out-expo);
+        }
+
+        #loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(var(--color-primary), 0.3);
+            border-top: 4px solid var(--color-primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1.5s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+
+        #main-nav {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(var(--color-bg-dark), 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 0.75rem 2rem;
+            z-index: 100;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            border: 1px solid rgba(var(--color-primary), 0.2);
+            opacity: 0;
+            transform: translateY(-50px) translateX(-50%);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        #main-nav.visible {
+            opacity: 1;
+            transform: translateY(0) translateX(-50%);
+        }
+
+        #main-nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 2.5rem;
+            position: relative;
+        }
+
+        #main-nav li a {
+            color: var(--color-text-light);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 0;
+            position: relative;
+            transition: color 0.3s ease;
+            opacity: 0.8;
+        }
+
+        #main-nav li a:hover {
+            color: var(--color-primary);
+            opacity: 1;
+        }
+
+        #main-nav li a.active {
+            color: var(--color-primary);
+            opacity: 1;
+        }
+
+        .nav-indicator {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background-color: var(--color-primary);
+            border-radius: 2px;
+            transition: transform 0.5s var(--ease-out-expo), width 0.5s var(--ease-out-expo);
+        }
+
+
+        .app-section {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+            transform: translateY(100vh);
+            z-index: 5;
+            transition: opacity 1s var(--ease-out-expo), transform 1s var(--ease-out-expo);
+        }
+
+        .app-section.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .section-content {
+            max-width: 900px;
+            text-align: center;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: opacity 1s var(--ease-out-expo) 0.3s, transform 1s var(--ease-out-expo) 0.3s;
+        }
+
+        .app-section.active .section-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
+        #home-section h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        #home-section .highlight {
+            color: var(--color-primary);
+        }
+
+        #home-section .hero-subtitle {
+            font-family: var(--font-secondary);
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+
+        .cta-button {
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-family: var(--font-primary);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 15px rgba(var(--color-primary), 0.3);
+        }
+
+        .cta-button:hover {
+            background-color: #9932CC;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(var(--color-primary), 0.5);
+        }
+
+
+        #projects-section .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+            max-width: 1200px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .project-item {
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            padding: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            transition: transform 0.3s var(--ease-out-expo), box-shadow 0.3s var(--ease-out-expo);
+            cursor: pointer;
+            position: relative;
+            border: 1px solid rgba(var(--color-primary), 0.1);
+        }
+
+        .project-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(var(--color-primary), 0.3);
+            border-color: rgba(var(--color-primary), 0.5);
+        }
+
+        .project-item h3 {
+            font-size: 1.5rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-light);
+            font-weight: 700;
+        }
+
+        .project-item p {
+            font-family: var(--font-secondary);
+            font-size: 0.95rem;
+            opacity: 0.7;
+        }
+
+        .project-thumbnail {
+            position: relative;
+            width: 100%;
+            padding-top: 60%;
+            background-color: rgba(var(--color-primary), 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .project-thumbnail video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            pointer-events: none;
+        }
+
+        .project-item:hover .project-thumbnail video {
+            opacity: 1;
+        }
+
+
+        #generative-bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+
+        .text-center { text-align: center; }
+        .mt-4 { margin-top: 2rem; }
+    </style>
+</head>
+<body>
+
+    <div id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Unveiling Creativity...</p>
+    </div>
+
+    <nav id="main-nav">
+        <ul>
+            <li><a href="#" data-nav-target="home" class="active">Home</a></li>
+            <li><a href="#" data-nav-target="projects">Projects</a></li>
+            </ul>
+        <div class="nav-indicator"></div>
+    </nav>
+
+    <main id="app-container">
+        <canvas id="generative-bg-canvas"></canvas>
+
+        <section id="home-section" class="app-section active" data-section="home">
+            <div class="section-content">
+                <h1 class="hero-title">Hello, I'm <span class="highlight"> [Your Name] </span>.</h1>
+                <p class="hero-subtitle">I sculpt experiences, weave visuals, and build the future of interaction.</p>
+                <button class="cta-button" data-nav-target="projects">Explore My Work</button>
+            </div>
+        </section>
+
+        <section id="projects-section" class="app-section" data-section="projects">
+            <div class="section-content">
+                <h2>Narratives of Creation</h2>
+                <p>Dive into selected works, each a testament to meticulous craft and strategic thinking.</p>
+                <div class="project-grid">
+                    <div class="project-item" data-project-id="project-01">
+                        <div class="project-thumbnail">
+                            <video class="project-preview-video" muted loop preload="auto">
+                                <source src="https://assets.mixkit.co/videos/preview/mixkit-floating-lights-in-the-night-4977-large.mp4" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <h3>Project Name One</h3>
+                        <p>UI/UX Design, Branding</p>
+                    </div>
+                    <div class="project-item" data-project-id="project-02">
+                        <div class="project-thumbnail">
+                             <video class="project-preview-video" muted loop preload="auto">
+                                <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-circuit-board-6352-large.mp4" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <h3>Project Name Two</h3>
+                        <p>Motion Graphics, Product Viz</p>
+                    </div>
+                     <div class="project-item" data-project-id="project-03">
+                        <div class="project-thumbnail">
+                             <video class="project-preview-video" muted loop preload="auto">
+                                <source src="https://assets.mixkit.co/videos/preview/mixkit-loop-of-futuristic-lines-moving-on-a-black-background-4786-large.mp4" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <h3>Project Name Three</h3>
+                        <p>Conceptual Art, 3D Rendering</p>
+                    </div>
+                    <div class="project-item" data-project-id="project-04">
+                        <div class="project-thumbnail">
+                             <video class="project-preview-video" muted loop preload="auto">
+                                <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-glowing-lines-4043-large.mp4" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <h3>Project Name Four</h3>
+                        <p>Interactive Prototype, UX Research</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let bgScene, bgCamera, bgRenderer, bgParticles, bgParticleMaterial, mouseX = 0, mouseY = 0;
+        let animationFrameId;
+
+        function setupGenerativeBackground(canvasId) {
+            const canvas = document.getElementById(canvasId);
+
+            bgScene = new THREE.Scene();
+            bgCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            bgCamera.position.z = 200;
+
+            bgRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+            bgRenderer.setSize(window.innerWidth, window.innerHeight);
+            bgRenderer.setPixelRatio(window.devicePixelRatio);
+
+            const particleCount = 5000;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            const color1 = new THREE.Color(0x8A2BE2);
+            const color2 = new THREE.Color(0xFF69B4);
+
+            for (let i = 0; i < particleCount; i++) {
+                const r = 200 * Math.sqrt(Math.random());
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+
+                positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+                positions[i * 3 + 2] = r * Math.cos(phi);
+
+                const mixedColor = new THREE.Color();
+                mixedColor.lerpColors(color1, color2, Math.random());
+                colors[i * 3] = mixedColor.r;
+                colors[i * 3 + 1] = mixedColor.g;
+                colors[i * 3 + 2] = mixedColor.b;
+            }
+
+            const particleGeometry = new THREE.BufferGeometry();
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            bgParticleMaterial = new THREE.PointsMaterial({
+                size: 1.5,
+                vertexColors: true,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                opacity: 0.8,
+                sizeAttenuation: true
+            });
+
+            bgParticles = new THREE.Points(particleGeometry, bgParticleMaterial);
+            bgScene.add(bgParticles);
+
+            animateGenerativeBackground();
+        }
+
+        function animateGenerativeBackground() {
+            animationFrameId = requestAnimationFrame(animateGenerativeBackground);
+
+            bgParticles.rotation.x += (mouseY * 0.0005 - bgParticles.rotation.x) * 0.1;
+            bgParticles.rotation.y += (mouseX * 0.0005 - bgParticles.rotation.y) * 0.1;
+            bgParticles.rotation.z += 0.0002;
+
+            bgRenderer.render(bgScene, bgCamera);
+        }
+
+        function updateGenerativeBackground(x, y) {
+            mouseX = (x - window.innerWidth / 2) / window.innerWidth;
+            mouseY = (y - window.innerHeight / 2) / window.innerHeight;
+
+            if (bgRenderer) {
+                bgRenderer.setSize(window.innerWidth, window.innerHeight);
+                bgCamera.aspect = window.innerWidth / window.innerHeight;
+                bgCamera.updateProjectionMatrix();
+            }
+        }
+
+        const sections = document.querySelectorAll('.app-section');
+        const navLinks = document.querySelectorAll('#main-nav a');
+        const navIndicator = document.querySelector('.nav-indicator');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        let activeSectionId = 'home';
+
+        function initApp() {
+            setupNavigation();
+            setupGenerativeBackground('generative-bg-canvas');
+            activateSection('home', false);
+            setupProjectPreviews();
+
+            gsap.to('#main-nav', { opacity: 1, y: 0, duration: 0.8, ease: 'expo.out', delay: 0.5 });
+        }
+
+        function setupNavigation() {
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetSectionId = e.target.dataset.navTarget;
+                    if (targetSectionId && targetSectionId !== activeSectionId) {
+                        activateSection(targetSectionId);
+                    }
+                });
+            });
+        }
+
+        function activateSection(targetId, animate = true) {
+            const targetSection = document.getElementById(`${targetId}-section`);
+            if (!targetSection) return;
+
+            const currentActiveSection = document.getElementById(`${activeSectionId}-section`);
+            if (currentActiveSection) {
+                currentActiveSection.classList.remove('active');
+                if (animate) {
+                    gsap.to(currentActiveSection.querySelector('.section-content'), {
+                        opacity: 0, y: 20, duration: 0.5, ease: 'power2.out',
+                        onComplete: () => { currentActiveSection.style.pointerEvents = 'none'; }
+                    });
+                } else {
+                    currentActiveSection.querySelector('.section-content').style.opacity = 0;
+                    currentActiveSection.querySelector('.section-content').style.transform = 'translateY(20px)';
+                    currentActiveSection.style.pointerEvents = 'none';
+                }
+            }
+
+            activeSectionId = targetId;
+            targetSection.classList.add('active');
+            if (animate) {
+                gsap.fromTo(targetSection.querySelector('.section-content'),
+                    { opacity: 0, y: 20 },
+                    { opacity: 1, y: 0, duration: 1, ease: 'expo.out', delay: 0.3,
+                        onComplete: () => { targetSection.style.pointerEvents = 'auto'; }
+                    });
+            } else {
+                targetSection.querySelector('.section-content').style.opacity = 1;
+                targetSection.querySelector('.section-content').style.transform = 'translateY(0)';
+                targetSection.style.pointerEvents = 'auto';
+            }
+
+            navLinks.forEach(link => {
+                if (link.dataset.navTarget === targetId) {
+                    link.classList.add('active');
+                    updateNavIndicator(link);
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        function updateNavIndicator(activeLink) {
+            const { offsetLeft, clientWidth } = activeLink;
+            gsap.to(navIndicator, {
+                width: clientWidth,
+                x: offsetLeft,
+                duration: 0.5,
+                ease: 'expo.out'
+            });
+        }
+
+        function setupProjectPreviews() {
+            const projectItems = document.querySelectorAll('.project-item');
+
+            projectItems.forEach(item => {
+                const video = item.querySelector('.project-preview-video');
+                if (video) {
+                    let playTimeout;
+                    let pauseTimeout;
+
+                    item.addEventListener('mouseenter', () => {
+                        clearTimeout(pauseTimeout);
+                        playTimeout = setTimeout(() => {
+                            video.play();
+                            gsap.to(video, { opacity: 1, duration: 0.4 });
+                        }, 200);
+                    });
+
+                    item.addEventListener('mouseleave', () => {
+                        clearTimeout(playTimeout);
+                        pauseTimeout = setTimeout(() => {
+                            gsap.to(video, { opacity: 0, duration: 0.4, onComplete: () => {
+                                video.pause();
+                                video.currentTime = 0;
+                            }});
+                        }, 100);
+                    });
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                loadingOverlay.classList.add('hidden');
+                gsap.to(loadingOverlay, {
+                    opacity: 0,
+                    duration: 1,
+                    ease: 'expo.out',
+                    onComplete: () => {
+                        loadingOverlay.style.display = 'none';
+                        initApp();
+                    }
+                });
+            }, 2000);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            updateGenerativeBackground(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('resize', () => {
+            updateGenerativeBackground();
+            const activeLink = document.querySelector('#main-nav a.active');
+            if (activeLink) {
+                updateNavIndicator(activeLink);
+            }
+        });
+
+        window.addEventListener('load', () => {
+            const homeLink = document.querySelector('[data-nav-target="home"]');
+            if (homeLink) {
+                updateNavIndicator(homeLink);
+            }
+        });
+
+    </script>
+</body>
+</html>
